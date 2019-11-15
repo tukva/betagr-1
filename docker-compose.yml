@@ -1,0 +1,52 @@
+version: '3'
+services:
+  dashboard:
+    build: dashboard/server
+    ports:
+      - 5000:5000
+    command: python ./app.py
+    depends_on:
+      - liquibase
+    env_file:
+      .env
+
+  sso:
+    build: sso/server
+    ports:
+      - 8080:8080
+    command: python ./app.py
+    depends_on:
+      - liquibase
+    env_file:
+      .env
+
+  aggregator:
+    build: aggregator/server
+    ports:
+      - 3000:3000
+    command: python ./app.py
+    depends_on:
+      - liquibase
+    env_file:
+      .env
+
+  parser:
+    build: parser/server
+    ports:
+      - 8000:8000
+    command: python ./app.py
+    depends_on:
+      - liquibase
+    env_file:
+      .env
+
+  liquibase:
+        image: "webdevops/liquibase:postgres"
+        volumes:
+            - .:/liquibase
+        command: update
+        environment:
+            - LIQUIBASE_CHANGELOG=${LIQUIBASE_CHANGELOG}
+            - LIQUIBASE_URL=jdbc:postgresql://host.docker.internal:${POSTGRES_PORT}/${POSTGRES_DB}
+            - LIQUIBASE_USERNAME=${POSTGRES_USER}
+            - LIQUIBASE_PASSWORD=${POSTGRES_PASSWORD}
